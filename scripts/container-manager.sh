@@ -38,6 +38,7 @@ start() {
 	exec $AA_EXEC $SNAP/bin/anbox-wrapper.sh container-manager \
 		--data-path=$DATA_PATH \
 		--android-image=$ANDROID_IMG \
+		--privileged \
 		--daemon
 }
 
