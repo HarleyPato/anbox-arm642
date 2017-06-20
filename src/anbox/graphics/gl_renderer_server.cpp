@@ -65,8 +65,9 @@ void logger_write(const emugl::LogLevel &level, const char *format, ...) {
 
 namespace anbox {
 namespace graphics {
-GLRendererServer::GLRendererServer(const Config &config, const std::shared_ptr<wm::Manager> &wm)
-    : renderer_(std::make_shared<::Renderer>()) {
+GLRendererServer::GLRendererServer(const Config &config, const std::shared_ptr<wm::Manager> &wm,
+                                   const std::shared_ptr<platform::BasePlatform> &platform)
+    : renderer_(std::make_shared<::Renderer>(platform)) {
 
   std::shared_ptr<LayerComposer::Strategy> composer_strategy;
   if (config.single_window)

@@ -30,6 +30,9 @@ class Manager;
 namespace wm {
 class Manager;
 }  // namespace wm
+namespace platform {
+class BasePlatform;
+} // namespace platform
 namespace graphics {
 class LayerComposer;
 class GLRendererServer {
@@ -40,7 +43,8 @@ class GLRendererServer {
     bool single_window;
   };
 
-  GLRendererServer(const Config &config, const std::shared_ptr<wm::Manager> &wm);
+  GLRendererServer(const Config &config, const std::shared_ptr<wm::Manager> &wm,
+                   const std::shared_ptr<platform::BasePlatform> &platform);
   ~GLRendererServer();
 
   std::shared_ptr<Renderer> renderer() const { return renderer_; }

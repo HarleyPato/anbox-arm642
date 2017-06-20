@@ -70,6 +70,10 @@ class Platform : public std::enable_shared_from_this<Platform>,
 
   bool supports_multi_window() const override;
 
+  EGLNativeDisplayType native_display() const override;
+
+  EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;
+
  private:
   void process_events();
   void process_input_event(const SDL_Event &event);

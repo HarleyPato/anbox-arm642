@@ -27,6 +27,8 @@
 #include "anbox/graphics/program_family.h"
 #include "anbox/graphics/renderer.h"
 
+#include "anbox/platform/base_platform.h"
+
 #include <EGL/egl.h>
 
 #include <map>
@@ -73,7 +75,7 @@ struct RendererWindow;
 //
 class Renderer : public anbox::graphics::Renderer {
  public:
-  Renderer();
+  Renderer(const std::shared_ptr<anbox::platform::BasePlatform> &platform);
   virtual ~Renderer();
 
   // Initialize the global instance.
@@ -104,9 +106,9 @@ class Renderer : public anbox::graphics::Renderer {
     *version = m_glVersion;
   }
 
-  RendererWindow* createNativeWindow(EGLNativeWindowType native_window);
-  void destroyNativeWindow(RendererWindow* window);
-  void destroyNativeWindow(EGLNativeWindowType native_window);
+  EGLSurface attach_window(EGLNativeWindowType native_window);
+  void detach_window(RendererWindow* window);
+  void detach_window(EGLNativeWindowType native_window);
 
   // Create a new RenderContext instance for this display instance.
   // |p_config| is the index of one of the configs returned by getConfigs().
@@ -283,6 +285,8 @@ class Renderer : public anbox::graphics::Renderer {
   const char* m_glVendor;
   const char* m_glRenderer;
   const char* m_glVersion;
+
+  std::shared_ptr<anbox::platform::BasePlatform> m_platform;
 
   std::map<EGLNativeWindowType, RendererWindow*> m_nativeWindows;
 

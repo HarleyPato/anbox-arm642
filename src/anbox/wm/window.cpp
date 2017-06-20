@@ -49,14 +49,23 @@ std::string Window::title() const { return title_; }
 bool Window::attach() {
   if (!renderer_)
     return false;
-  attached_ = renderer_->createNativeWindow(native_handle());
+  egl_surface_ = renderer_->attach_window(native_handle());
+  if (egl_surface_ != EGL_NO_SURFACE)
+    attached_ = true;
   return attached_;
 }
 
 void Window::release() {
   if (!renderer_ || !attached_)
     return;
-  renderer_->destroyNativeWindow(native_handle());
+  renderer_->detach_window(native_handle());
+}
+
+void Window::swap_buffers(EGLDisplay display) {
+}
+
+EGLSurface Window::egl_surface() const {
+  return egl_surface_;
 }
 }  // namespace wm
 }  // namespace anbox

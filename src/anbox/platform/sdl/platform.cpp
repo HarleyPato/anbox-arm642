@@ -26,6 +26,8 @@
 #include "anbox/platform/sdl/audio_sink.h"
 #include "anbox/wm/manager.h"
 
+#include "external/android-emugl/host/include/OpenGLESDispatch/EGLDispatch.h"
+
 #include <boost/throw_exception.hpp>
 
 #include <signal.h>
@@ -315,6 +317,19 @@ std::shared_ptr<audio::Source> Platform::create_audio_source() {
 
 bool Platform::supports_multi_window() const {
   return true;
+}
+
+EGLNativeDisplayType Platform::native_display() const {
+  return reinterpret_cast<EGLNativeDisplayType>(0);
+}
+
+EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
+  const EGLint attribs[5] = {
+      EGL_WIDTH, static_cast<EGLint>(width),
+      EGL_HEIGHT, static_cast<EGLint>(height),
+      EGL_NONE,
+  };
+  return s_egl.eglCreatePbufferSurface(display, config, attribs);
 }
 } // namespace sdl
 } // namespace platform

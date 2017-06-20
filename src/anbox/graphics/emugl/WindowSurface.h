@@ -18,6 +18,7 @@
 
 #include "anbox/graphics/emugl/ColorBuffer.h"
 #include "anbox/graphics/emugl/RenderContext.h"
+#include "anbox/platform/base_platform.h"
 
 #include <EGL/egl.h>
 #include <GLES/gl.h>
@@ -31,8 +32,9 @@ class WindowSurface {
   // |config| is the host EGLConfig value.
   // |width| and |height| are the initial size of the Pbuffer.
   // Return a new WindowSurface instance on success, or NULL on failure.
-  static WindowSurface* create(EGLDisplay display, EGLConfig config, int width,
-                               int height);
+  static WindowSurface* create(EGLDisplay display,
+                               const std::shared_ptr<anbox::platform::BasePlatform> &platform,
+                               EGLConfig config, int width, int height);
 
   // Destructor.
   ~WindowSurface();
@@ -77,7 +79,7 @@ class WindowSurface {
   WindowSurface();
   WindowSurface(const WindowSurface& other);
 
-  explicit WindowSurface(EGLDisplay display, EGLConfig config);
+  explicit WindowSurface(EGLDisplay display, const std::shared_ptr<anbox::platform::BasePlatform> &platform, EGLConfig config);
 
   bool resize(unsigned int p_width, unsigned int p_height);
 
@@ -90,6 +92,7 @@ class WindowSurface {
   GLuint mHeight;
   EGLConfig mConfig;
   EGLDisplay mDisplay;
+  std::shared_ptr<anbox::platform::BasePlatform> mPlatform;
 };
 
 typedef std::shared_ptr<WindowSurface> WindowSurfacePtr;

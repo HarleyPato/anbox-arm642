@@ -76,6 +76,16 @@ pkg_check_modules(PROPERTIES_CPP properties-cpp REQUIRED)
 #   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMIR_SUPPORT")
 # endif()
 
+set(KMSDRM_SUPPORT false)
+pkg_check_modules(LIBDRM libdrm)
+pkg_check_modules(GBM gbm)
+pkg_check_modules(LIBINPUT libinput)
+pkg_check_modules(LIBUDEV libudev)
+if (LIBDRM_FOUND AND GBM_FOUND AND LIBINPUT_FOUND AND LIBUDEV_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DKMSDRM_SUPPORT")
+    set(KMSDRM_SUPPORT true)
+endif()
+
 #####################################################################
 # Enable code coverage calculation with gcov/gcovr/lcov
 # Usage:

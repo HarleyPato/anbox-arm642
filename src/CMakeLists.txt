@@ -11,6 +11,10 @@ include_directories(
   ${PROPERTIES_CPP_INCLUDE_DIRS}
   ${LXC_INCLUDE_DIRS}
   ${MIRCLIENT_INCLUDE_DIRS}
+  ${GBM_INCLUDE_DIRS}
+  ${LIBDRM_INCLUDE_DIRS}
+  ${LIBINPUT_INCLUDE_DIRS}
+  ${LIBUDEV_INCLUDE_DIRS}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/src
@@ -218,6 +222,15 @@ set(SOURCES
     anbox/optional.h
     anbox/defer_action.h)
 
+if (KMSDRM_SUPPORT)
+    set(SOURCES
+        ${SOURCES}
+        anbox/platform/kmsdrm/window.h
+        anbox/platform/kmsdrm/window.cpp
+        anbox/platform/kmsdrm/platform.cpp
+        anbox/platform/kmsdrm/platform.h)
+endif()
+
 add_library(anbox-core STATIC ${SOURCES})
 target_link_libraries(anbox-core
   ${Boost_LDFLAGS}
@@ -232,6 +245,14 @@ target_link_libraries(anbox-core
   ${LXC_LIBRARIES}
   ${MIRCLIENT_LDFLAGS}
   ${MIRCLIENT_LIBRARIES}
+  ${GBM_LDFLAGS}
+  ${GBM_LIBRARIES}
+  ${LIBDRM_LDFLAGS}
+  ${LIBDRM_LIBRARIES}
+  ${LIBINPUT_LDFLAGS}
+  ${LIBINPUT_LIBRARIES}
+  ${LIBUDEV_LDFLAGS}
+  ${LIBUDEV_LIBRARIES}
   pthread
   process-cpp
   emugl_common

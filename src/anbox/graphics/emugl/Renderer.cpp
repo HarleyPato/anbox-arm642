@@ -264,7 +264,7 @@ Renderer::Program::Program(GLuint program_id) {
   alpha_uniform = s_gles2.glGetUniformLocation(id, "alpha");
 }
 
-Renderer::Renderer()
+Renderer::Renderer(const std::shared_ptr<anbox::platform::BasePlatform> &platform)
     : m_configs(NULL),
       m_eglDisplay(EGL_NO_DISPLAY),
       m_colorBufferHelper(new ColorBufferHelper(this)),
@@ -279,7 +279,8 @@ Renderer::Renderer()
       m_statsStartTime(0LL),
       m_glVendor(NULL),
       m_glRenderer(NULL),
-      m_glVersion(NULL) {
+      m_glVersion(NULL),
+      m_platform(platform) {
   m_fpsStats = getenv("SHOW_FPS_STATS") != NULL;
 }
 
@@ -297,14 +298,12 @@ struct RendererWindow {
   glm::mat4 display_transform;
 };
 
-RendererWindow *Renderer::createNativeWindow(
-    EGLNativeWindowType native_window) {
+EGLSurface Renderer::attach_window(EGLNativeWindowType native_window) {
   m_lock.lock();
 
   auto window = new RendererWindow;
   window->native_window = native_window;
-  window->surface = s_egl.eglCreateWindowSurface(
-      m_eglDisplay, m_eglConfig, window->native_window, nullptr);
+  window->surface = s_egl.eglCreateWindowSurface(m_eglDisplay, m_eglConfig, window->native_window, nullptr);
   if (window->surface == EGL_NO_SURFACE) {
     delete window;
     m_lock.unlock();
@@ -328,10 +327,10 @@ RendererWindow *Renderer::createNativeWindow(
 
   m_lock.unlock();
 
-  return window;
+  return window->surface;
 }
 
-void Renderer::destroyNativeWindow(EGLNativeWindowType native_window) {
+void Renderer::detach_window(EGLNativeWindowType native_window) {
   auto w = m_nativeWindows.find(native_window);
   if (w == m_nativeWindows.end()) return;
 
@@ -419,8 +418,7 @@ HandleType Renderer::createWindowSurface(int p_config, int p_width,
     return ret;
   }
 
-  WindowSurfacePtr win(WindowSurface::create(
-      getDisplay(), config->getEglConfig(), p_width, p_height));
+  WindowSurfacePtr win(WindowSurface::create(getDisplay(), m_platform, config->getEglConfig(), p_width, p_height));
   if (win) {
     ret = genHandle();
     m_windows[ret] = std::pair<WindowSurfacePtr, HandleType>(win, 0);

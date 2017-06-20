@@ -26,7 +26,7 @@
 #include <string.h>
 
 
-WindowSurface::WindowSurface(EGLDisplay display, EGLConfig config)
+WindowSurface::WindowSurface(EGLDisplay display, const std::shared_ptr<anbox::platform::BasePlatform> &platform, EGLConfig config)
     : mSurface(NULL),
       mAttachedColorBuffer(NULL),
       mReadContext(NULL),
@@ -34,7 +34,8 @@ WindowSurface::WindowSurface(EGLDisplay display, EGLConfig config)
       mWidth(0),
       mHeight(0),
       mConfig(config),
-      mDisplay(display) {}
+      mDisplay(display),
+      mPlatform(platform) {}
 
 WindowSurface::~WindowSurface() {
   if (mSurface) {
@@ -42,10 +43,11 @@ WindowSurface::~WindowSurface() {
   }
 }
 
-WindowSurface *WindowSurface::create(EGLDisplay display, EGLConfig config,
-                                     int p_width, int p_height) {
+WindowSurface *WindowSurface::create(EGLDisplay display,
+                                     const std::shared_ptr<anbox::platform::BasePlatform> &platform,
+                                     EGLConfig config, int p_width, int p_height) {
   // allocate space for the WindowSurface object
-  WindowSurface *win = new WindowSurface(display, config);
+  WindowSurface *win = new WindowSurface(display, platform, config);
   if (!win) {
     return NULL;
   }
@@ -123,8 +125,8 @@ bool WindowSurface::flushColorBuffer() {
   return true;
 }
 
-bool WindowSurface::resize(unsigned int p_width, unsigned int p_height) {
-  if (mSurface && mWidth == p_width && mHeight == p_height) {
+bool WindowSurface::resize(unsigned int width, unsigned int height) {
+  if (mSurface && mWidth == width && mHeight == height) {
     // no need to resize
     return true;
   }
@@ -146,20 +148,14 @@ bool WindowSurface::resize(unsigned int p_width, unsigned int p_height) {
     mSurface = NULL;
   }
 
-  const EGLint pbufAttribs[5] = {
-      EGL_WIDTH, static_cast<EGLint>(p_width),
-      EGL_HEIGHT, static_cast<EGLint>(p_height),
-      EGL_NONE,
-  };
-
-  mSurface = s_egl.eglCreatePbufferSurface(mDisplay, mConfig, pbufAttribs);
+  mSurface = mPlatform->create_offscreen_surface(mDisplay, mConfig, width, height);
   if (mSurface == EGL_NO_SURFACE) {
     ERROR("Failed to create/resize pbuffer");
     return false;
   }
 
-  mWidth = p_width;
-  mHeight = p_height;
+  mWidth = width;
+  mHeight = height;
 
   if (needRebindContext) {
     s_egl.eglMakeCurrent(

@@ -36,6 +36,8 @@ class NullPlatform : public BasePlatform {
   void set_renderer(const std::shared_ptr<Renderer> &renderer) override;
   void set_window_manager(const std::shared_ptr<wm::Manager> &window_manager) override;
   bool supports_multi_window() const override;
+  EGLNativeDisplayType native_display() const override;
+  EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;
 };
 }  // namespace wm
 }  // namespace anbox

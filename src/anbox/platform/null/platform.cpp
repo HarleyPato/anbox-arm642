@@ -71,5 +71,13 @@ void NullPlatform::set_window_manager(const std::shared_ptr<wm::Manager> &window
 bool NullPlatform::supports_multi_window() const {
   return false;
 }
+
+EGLNativeDisplayType NullPlatform::native_display() const {
+  return reinterpret_cast<EGLNativeDisplayType>(0);
+}
+
+EGLSurface NullPlatform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
+  return EGL_NO_SURFACE;
+}
 }  // namespace wm
 }  // namespace anbox

@@ -168,6 +168,7 @@ anbox::cmds::SessionManager::SessionManager(const BusFactory &bus_factory)
       display_frame = window_size_;
 
     auto platform = platform::create(utils::get_env_value("ANBOX_PLATFORM", "sdl"),
+                                     rt,
                                      input_manager,
                                      display_frame,
                                      single_window_);
@@ -186,7 +187,8 @@ anbox::cmds::SessionManager::SessionManager(const BusFactory &bus_factory)
     }
 
     auto gl_server = std::make_shared<graphics::GLRendererServer>(
-          graphics::GLRendererServer::Config{gles_driver_, single_window_}, window_manager);
+          graphics::GLRendererServer::Config{gles_driver_, single_window_},
+          window_manager, platform);
 
     platform->set_window_manager(window_manager);
     platform->set_renderer(gl_server->renderer());
