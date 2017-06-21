@@ -59,7 +59,7 @@ static EGLint rcQueryEGLString(EGLenum name, void *buffer, EGLint bufferSize) {
   if (!renderer)
     return 0;
 
-  auto result = s_egl.eglQueryString(renderer->getDisplay(), name);
+  auto result = s_egl.eglQueryString(renderer->getEglDisplay(), name);
   if (!result)
     return 0;
 
