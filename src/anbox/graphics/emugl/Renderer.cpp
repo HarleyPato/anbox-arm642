@@ -291,58 +291,50 @@ Renderer::~Renderer() {
 }
 
 struct RendererWindow {
-  EGLNativeWindowType native_window = 0;
   EGLSurface surface = EGL_NO_SURFACE;
   anbox::graphics::Rect viewport;
   glm::mat4 screen_to_gl_coords;
   glm::mat4 display_transform;
 };
 
-EGLSurface Renderer::attach_window(EGLNativeWindowType native_window) {
+bool Renderer::attach_window(EGLSurface surface) {
+  if (surface == EGL_NO_SURFACE)
+    return false;
+
   m_lock.lock();
 
   auto window = new RendererWindow;
-  window->native_window = native_window;
-  window->surface = s_egl.eglCreateWindowSurface(m_eglDisplay, m_eglConfig, window->native_window, nullptr);
-  if (window->surface == EGL_NO_SURFACE) {
-    delete window;
-    m_lock.unlock();
-    return nullptr;
-  }
+  window->surface = surface;
 
   if (!bindWindow_locked(window)) {
-    s_egl.eglDestroySurface(m_eglDisplay, window->surface);
     delete window;
     m_lock.unlock();
-    return nullptr;
+    return false;
   }
 
   s_gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
                   GL_STENCIL_BUFFER_BIT);
-  s_egl.eglSwapBuffers(m_eglDisplay, window->surface);
+  m_platform->swap_buffers(m_eglDisplay, surface);
 
   unbind_locked();
 
-  m_nativeWindows.insert({native_window, window});
+  m_surfaces.insert({surface, window});
 
   m_lock.unlock();
 
-  return window->surface;
+  return true;
 }
 
-void Renderer::detach_window(EGLNativeWindowType native_window) {
-  auto w = m_nativeWindows.find(native_window);
-  if (w == m_nativeWindows.end()) return;
+void Renderer::detach_window(EGLSurface surface) {
+  auto w = m_surfaces.find(surface);
+  if (w == m_surfaces.end()) return;
 
   m_lock.lock();
 
   s_egl.eglMakeCurrent(m_eglDisplay, nullptr, nullptr, nullptr);
 
-  if (w->second->surface != EGL_NO_SURFACE)
-    s_egl.eglDestroySurface(m_eglDisplay, w->second->surface);
-
   delete w->second;
-  m_nativeWindows.erase(w);
+  m_surfaces.erase(w);
 
   m_lock.unlock();
 }
@@ -364,7 +356,7 @@ HandleType Renderer::createColorBuffer(int p_width, int p_height,
   HandleType ret = 0;
 
   ColorBufferPtr cb(ColorBuffer::create(
-      getDisplay(), p_width, p_height, p_internalFormat,
+      getEglDisplay(), p_width, p_height, p_internalFormat,
       getCaps().has_eglimage_texture_2d, m_colorBufferHelper));
   if (cb) {
     ret = genHandle();
@@ -418,7 +410,7 @@ HandleType Renderer::createWindowSurface(int p_config, int p_width,
     return ret;
   }
 
-  WindowSurfacePtr win(WindowSurface::create(getDisplay(), m_platform, config->getEglConfig(), p_width, p_height));
+  WindowSurfacePtr win(WindowSurface::create(getEglDisplay(), m_platform, config->getEglConfig(), p_width, p_height));
   if (win) {
     ret = genHandle();
     m_windows[ret] = std::pair<WindowSurfacePtr, HandleType>(win, 0);
@@ -933,11 +925,11 @@ void Renderer::draw(RendererWindow *window, const Renderable &renderable,
   s_gles2.glDisableVertexAttribArray(prog.position_attr);
 }
 
-bool Renderer::draw(EGLNativeWindowType native_window,
+bool Renderer::draw(EGLSurface surface,
                     const anbox::graphics::Rect &window_frame,
                     const RenderableList &renderables) {
-  auto w = m_nativeWindows.find(native_window);
-  if (w == m_nativeWindows.end()) return false;
+  auto w = m_surfaces.find(surface);
+  if (w == m_surfaces.end()) return false;
 
   if (!bindWindow_locked(w->second)) {
     m_lock.unlock();
@@ -953,7 +945,7 @@ bool Renderer::draw(EGLNativeWindowType native_window,
   for (const auto &r : renderables)
     draw(w->second, r, r.alpha() < 1.0f ? m_alphaProgram : m_defaultProgram);
 
-  s_egl.eglSwapBuffers(m_eglDisplay, w->second->surface);
+  m_platform->swap_buffers(m_eglDisplay, w->second->surface);
 
   unbind_locked();
 
@@ -962,4 +954,10 @@ bool Renderer::draw(EGLNativeWindowType native_window,
   m_lock.unlock();
 
   return false;
+}
+
+void Renderer::runLocked(const std::function<void ()> &func) {
+  m_lock.lock();
+  func();
+  m_lock.unlock();
 }

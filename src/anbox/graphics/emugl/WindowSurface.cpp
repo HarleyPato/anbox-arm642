@@ -39,7 +39,7 @@ WindowSurface::WindowSurface(EGLDisplay display, const std::shared_ptr<anbox::pl
 
 WindowSurface::~WindowSurface() {
   if (mSurface) {
-    s_egl.eglDestroySurface(mDisplay, mSurface);
+    mPlatform->destroy_offscreen_surface(mDisplay, mSurface);
   }
 }
 
@@ -144,13 +144,13 @@ bool WindowSurface::resize(unsigned int width, unsigned int height) {
   }
 
   if (mSurface) {
-    s_egl.eglDestroySurface(mDisplay, mSurface);
+    mPlatform->destroy_offscreen_surface(mDisplay, mSurface);
     mSurface = NULL;
   }
 
   mSurface = mPlatform->create_offscreen_surface(mDisplay, mConfig, width, height);
   if (mSurface == EGL_NO_SURFACE) {
-    ERROR("Failed to create/resize pbuffer");
+    ERROR("Failed to create/resize window surface");
     return false;
   }
 

@@ -16,8 +16,11 @@
  */
 
 #include "anbox/platform/sdl/window.h"
+#include "anbox/graphics/emugl/Renderer.h"
 #include "anbox/logger.h"
 #include "anbox/wm/window_state.h"
+
+#include "external/android-emugl/host/include/OpenGLESDispatch/EGLDispatch.h"
 
 #include <boost/throw_exception.hpp>
 
@@ -85,10 +88,20 @@ Window::Window(const std::shared_ptr<Renderer> &renderer,
   }
 
   SDL_ShowWindow(window_);
+
+  renderer->runLocked([this, renderer]() {
+    egl_surface_ = s_egl.eglCreateWindowSurface(
+          renderer->getEglDisplay(),
+          renderer->getEglConfig(),
+          native_handle(), nullptr);
+  });
 }
 
 Window::~Window() {
   if (window_) SDL_DestroyWindow(window_);
+
+  if (egl_surface() != EGL_NO_SURFACE)
+    s_egl.eglDestroySurface(renderer_->getEglDisplay(), egl_surface());
 }
 
 void Window::process_event(const SDL_Event &event) {

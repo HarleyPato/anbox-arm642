@@ -61,10 +61,14 @@ class BasePlatform {
   virtual void set_window_manager(const std::shared_ptr<wm::Manager> &window_manager) = 0;
 
   virtual bool supports_multi_window() const = 0;
+  virtual bool supports_cursor() const = 0;
 
   virtual EGLNativeDisplayType native_display() const = 0;
 
   virtual EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) = 0;
+  virtual void destroy_offscreen_surface(EGLDisplay display, EGLSurface) = 0;
+
+  virtual void swap_buffers(EGLDisplay display, EGLSurface surface) = 0;
 };
 std::shared_ptr<BasePlatform> create(const std::string &name = "",
                                      const std::shared_ptr<Runtime> &rt = nullptr,

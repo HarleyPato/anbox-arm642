@@ -38,6 +38,8 @@ class NullPlatform : public BasePlatform {
   bool supports_multi_window() const override;
   EGLNativeDisplayType native_display() const override;
   EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;
+  void destroy_offscreen_surface(EGLDisplay display, EGLSurface surface) override;
+  void swap_buffers(EGLDisplay display, EGLSurface surface) override;
   bool supports_cursor() const override;
 };
 }  // namespace wm

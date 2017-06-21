@@ -49,7 +49,9 @@ std::string Window::title() const { return title_; }
 bool Window::attach() {
   if (!renderer_)
     return false;
-  egl_surface_ = renderer_->attach_window(native_handle());
+
+  renderer_->attach_window(egl_surface());
+
   if (egl_surface_ != EGL_NO_SURFACE)
     attached_ = true;
   return attached_;
@@ -58,10 +60,8 @@ bool Window::attach() {
 void Window::release() {
   if (!renderer_ || !attached_)
     return;
-  renderer_->detach_window(native_handle());
-}
 
-void Window::swap_buffers(EGLDisplay display) {
+  renderer_->detach_window(egl_surface());
 }
 
 EGLSurface Window::egl_surface() const {

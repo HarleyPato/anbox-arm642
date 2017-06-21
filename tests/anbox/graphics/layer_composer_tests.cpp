@@ -33,7 +33,8 @@ using namespace ::testing;
 namespace {
 class MockRenderer : public anbox::graphics::Renderer {
  public:
-  MOCK_METHOD3(draw, bool(EGLNativeWindowType, const anbox::graphics::Rect&,
+  MOCK_METHOD3(draw, bool(EGLSurface,
+                          const anbox::graphics::Rect&,
                           const RenderableList&));
 };
 }

@@ -30,7 +30,7 @@ LayerComposer::~LayerComposer() {}
 void LayerComposer::submit_layers(const RenderableList &renderables) {
   auto win_layers = strategy_->process_layers(renderables);
   for (auto &w : win_layers) {
-    renderer_->draw(w.first->native_handle(),
+    renderer_->draw(w.first->egl_surface(),
                     Rect{0, 0, w.first->frame().width(), w.first->frame().height()},
                     w.second);
   }

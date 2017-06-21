@@ -69,6 +69,7 @@ void NullPlatform::set_window_manager(const std::shared_ptr<wm::Manager> &window
 }
 
 bool NullPlatform::supports_multi_window() const {
+  ERROR("Not implemented");
   return false;
 }
 
@@ -78,11 +79,29 @@ bool NullPlatform::supports_cursor() const {
 }
 
 EGLNativeDisplayType NullPlatform::native_display() const {
+  ERROR("Not implemented");
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }
 
 EGLSurface NullPlatform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
+  (void) display;
+  (void) config;
+  (void) width;
+  (void) height;
+  ERROR("Not implemented");
   return EGL_NO_SURFACE;
+}
+
+void NullPlatform::destroy_offscreen_surface(EGLDisplay display, EGLSurface surface) {
+  (void) display;
+  (void) surface;
+  ERROR("Not implemented");
+}
+
+void NullPlatform::swap_buffers(EGLDisplay display, EGLSurface surface) {
+  (void) display;
+  (void) surface;
+  ERROR("Not implemented");
 }
 }  // namespace wm
 }  // namespace anbox

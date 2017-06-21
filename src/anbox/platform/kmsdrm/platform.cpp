@@ -393,13 +393,12 @@ std::shared_ptr<wm::Window> Platform::create_window(
   DEBUG("width %d height %d", window_frame.width(), window_frame.height());
 
   if (!window_) {
-    auto surface = gbm_surface_create(gbm_,
+    auto gs = gbm_surface_create(gbm_,
              window_frame.width(), window_frame.height(),
              GBM_BO_FORMAT_XRGB8888,
              GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
 
-    window_ = Window::create(renderer_, shared_from_this(), surface, window_frame);
-    // renderer_->createNativeWindow(window_);
+    window_ = Window::create(renderer_, gs, window_frame);
   }
 
   return window_;
@@ -481,19 +480,57 @@ bool Platform::wait_for_page_flip(int timeout) {
   return true;
 }
 
-void Platform::on_swap_buffers_needed(EGLDisplay display, std::shared_ptr<Window> &window) {
-  auto surface = reinterpret_cast<gbm_surface*>(window->native_handle());
-  if (!surface) {
+EGLNativeDisplayType Platform::native_display() const {
+  return reinterpret_cast<EGLNativeDisplayType>(gbm_);
+}
+
+EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
+  auto gs = gbm_surface_create(gbm_, width, height,
+                               GBM_BO_FORMAT_XRGB8888,
+                               GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+  if (!gs)
+    return EGL_NO_SURFACE;
+
+  auto surface = s_egl.eglCreateWindowSurface(display, config, reinterpret_cast<EGLNativeWindowType>(gs), nullptr);
+  if (surface == EGL_NO_SURFACE) {
+    gbm_surface_destroy(gs);
+    return EGL_NO_SURFACE;
+  }
+
+  offscreen_surfaces_.insert({surface, gs});
+
+  return surface;
+}
+
+void Platform::destroy_offscreen_surface(EGLDisplay display, EGLSurface surface) {
+  s_egl.eglDestroySurface(display, surface);
+
+  auto iter = offscreen_surfaces_.find(surface);
+  if (iter == offscreen_surfaces_.end()) {
+    WARNING("Surface without attached GBM surface!?");
+    return;
+  }
+
+  gbm_surface_destroy(iter->second);
+  offscreen_surfaces_.erase(iter);
+}
+
+void Platform::swap_buffers(EGLDisplay display, EGLSurface surface) {
+  if (window_->egl_surface() != surface)
+    return;
+
+  auto gs = reinterpret_cast<gbm_surface*>(window_->native_handle());
+  if (!gs) {
     WARNING("Cannot swap buffers for window without a surface");
     return;
   }
 
-  if (!s_egl.eglSwapBuffers(display, window->egl_surface())) {
+  if (!s_egl.eglSwapBuffers(display, surface)) {
     WARNING("Cannot swap buffers");
     return;
   }
 
-  next_bo_ = gbm_surface_lock_front_buffer(surface);
+  next_bo_ = gbm_surface_lock_front_buffer(gs);
   if (!next_bo_) {
     WARNING("Failed to lock front buffer of surface");
     return;
@@ -513,7 +550,7 @@ void Platform::on_swap_buffers_needed(EGLDisplay display, std::shared_ptr<Window
     if (drmModeSetCrtc(fd_, encoder_->crtc_id, fb->id, 0, 0,
                        &saved_conn_id_, 1, &mode_)) {
       WARNING("Cannot queue DRM page flip: %s", strerror(errno));
-      gbm_surface_release_buffer(surface, next_bo_);
+      gbm_surface_release_buffer(gs, next_bo_);
       next_bo_ = nullptr;
       return;
     }
@@ -525,21 +562,17 @@ void Platform::on_swap_buffers_needed(EGLDisplay display, std::shared_ptr<Window
   }
 
   if (current_bo_)
-    gbm_surface_release_buffer(surface, current_bo_);
+    gbm_surface_release_buffer(gs, current_bo_);
 
   current_bo_ = next_bo_;
   next_bo_ = nullptr;
 }
 
-EGLNativeDisplayType Platform::native_display() const {
-  return reinterpret_cast<EGLNativeDisplayType>(gbm_);
-}
-
-EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
-  return EGL_NO_SURFACE;
-}
-
 bool Platform::supports_multi_window() const {
+  return false;
+}
+
+bool Platform::supports_cursor() const {
   return false;
 }
 } // namespace kmsdrm

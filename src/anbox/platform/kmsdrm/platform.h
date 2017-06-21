@@ -24,7 +24,7 @@
 #include "anbox/common/fd.h"
 #include "anbox/runtime.h"
 
-#include <map>
+#include <unordered_map>
 #include <thread>
 
 #include <gbm.h>
@@ -45,8 +45,7 @@ class Manager;
 namespace platform {
 namespace kmsdrm {
 class Platform : public std::enable_shared_from_this<Platform>,
-                 public BasePlatform,
-                 public Window::Observer {
+                 public BasePlatform {
  public:
   Platform(const std::shared_ptr<Runtime> &runtime,
            const std::shared_ptr<input::Manager> &input_manager);
@@ -67,11 +66,13 @@ class Platform : public std::enable_shared_from_this<Platform>,
   std::shared_ptr<audio::Source> create_audio_source() override { return nullptr; }
 
   EGLNativeDisplayType native_display() const override;
-  void on_swap_buffers_needed(EGLDisplay display, std::shared_ptr<Window> &window) override;
 
   EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;
+  void destroy_offscreen_surface(EGLDisplay display, EGLSurface) override;
+  void swap_buffers(EGLDisplay display, EGLSurface surface) override;
 
   bool supports_multi_window() const override;
+  bool supports_cursor() const override;
 
  private:
   void setup();
@@ -119,6 +120,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
   graphics::Rect pointer_pos_;
   int prev_tty_mode_ = 0;
   int prev_kd_mode_ = 0;
+  std::unordered_map<EGLSurface,gbm_surface*> offscreen_surfaces_;
 };
 } // namespace kmsdrm
 } // namespace platform

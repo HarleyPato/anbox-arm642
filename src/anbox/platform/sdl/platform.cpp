@@ -335,6 +335,24 @@ EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig conf
   };
   return s_egl.eglCreatePbufferSurface(display, config, attribs);
 }
+
+void Platform::destroy_offscreen_surface(EGLDisplay display, EGLSurface surface) {
+  s_egl.eglDestroySurface(display, surface);
+}
+
+void Platform::swap_buffers(EGLDisplay display, EGLSurface surface) {
+  for (auto &iter : windows_) {
+    auto window = iter.second.lock();
+    if (!window)
+      continue;
+
+    if (window->egl_surface() != surface)
+      continue;
+
+    s_egl.eglSwapBuffers(display, window->egl_surface());
+    break;
+  }
+}
 } // namespace sdl
 } // namespace platform
 } // namespace anbox

@@ -55,20 +55,20 @@ class Window {
   void update_frame(const graphics::Rect &frame);
 
   virtual EGLNativeWindowType native_handle() const;
-  virtual EGLSurface egl_surface() const;
+  EGLSurface egl_surface() const;
   graphics::Rect frame() const;
   Task::Id task() const;
   std::string title() const;
 
-  virtual void swap_buffers(EGLDisplay display);
+ protected:
+  std::shared_ptr<Renderer> renderer_;
+  EGLSurface egl_surface_ = EGL_NO_SURFACE;
 
  private:
-  std::shared_ptr<Renderer> renderer_;
   Task::Id task_;
   graphics::Rect frame_;
   std::string title_;
   bool attached_ = false;
-  EGLSurface egl_surface_ = EGL_NO_SURFACE;
 };
 }  // namespace wm
 }  // namespace anbox

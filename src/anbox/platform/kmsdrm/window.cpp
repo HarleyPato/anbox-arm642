@@ -22,30 +22,20 @@ namespace anbox {
 namespace platform {
 namespace kmsdrm {
 std::shared_ptr<Window> Window::create(const std::shared_ptr<Renderer> &renderer,
-                                       const std::weak_ptr<Observer> &observer,
                                        gbm_surface *surface,
                                        const graphics::Rect &frame) {
-  return std::shared_ptr<Window>(new Window(renderer, observer, surface, frame));
+  return std::shared_ptr<Window>(new Window(renderer, surface, frame));
 }
 
 Window::Window(const std::shared_ptr<Renderer> &renderer,
-               const std::weak_ptr<Observer> &observer,
                gbm_surface *surface,
                const graphics::Rect &frame)
     : wm::Window(renderer, 0, frame, ""),
-      observer_{observer},
       surface_{surface} {}
 
 Window::~Window() {
   if (surface_)
     gbm_surface_destroy(surface_);
-}
-
-void Window::swap_buffers(EGLDisplay display) {
-  if (auto o = observer_.lock()) {
-    auto self = shared_from_this();
-    o->on_swap_buffers_needed(display, self);
-  }
 }
 
 EGLNativeWindowType Window::native_handle() const {

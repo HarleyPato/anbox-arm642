@@ -32,34 +32,19 @@ namespace kmsdrm {
 class Window : public wm::Window,
                public std::enable_shared_from_this<Window> {
  public:
-  typedef std::int32_t Id;
-  static Id Invalid;
-
-  class Observer {
-   public:
-    virtual ~Observer() {}
-    virtual void on_swap_buffers_needed(EGLDisplay display, std::shared_ptr<Window> &window) = 0;
-  };
-
   static std::shared_ptr<Window> create(const std::shared_ptr<Renderer> &renderer,
-                                        const std::weak_ptr<Observer> &observer,
                                         gbm_surface *surface,
                                         const graphics::Rect &frame);
 
   ~Window();
 
   EGLNativeWindowType native_handle() const override;
-  EGLSurface egl_surface() const override;
-
-  void swap_buffers(EGLDisplay display) override;
 
  private:
   Window(const std::shared_ptr<Renderer> &renderer,
-         const std::weak_ptr<Observer> &observer,
          gbm_surface *surface,
          const graphics::Rect &frame);
 
-  std::weak_ptr<Observer> observer_;
   gbm_surface *surface_ = nullptr;
 };
 } // namespace kmsdrm

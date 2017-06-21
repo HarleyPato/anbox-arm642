@@ -33,6 +33,7 @@
 
 #include <map>
 #include <mutex>
+#include <functional>
 
 #include <stdint.h>
 
@@ -106,9 +107,8 @@ class Renderer : public anbox::graphics::Renderer {
     *version = m_glVersion;
   }
 
-  EGLSurface attach_window(EGLNativeWindowType native_window);
-  void detach_window(RendererWindow* window);
-  void detach_window(EGLNativeWindowType native_window);
+  bool attach_window(EGLSurface surface);
+  void detach_window(EGLSurface surface);
 
   // Create a new RenderContext instance for this display instance.
   // |p_config| is the index of one of the configs returned by getConfigs().
@@ -223,7 +223,7 @@ class Renderer : public anbox::graphics::Renderer {
   bool updateColorBuffer(HandleType p_colorbuffer, int x, int y, int width,
                          int height, GLenum format, GLenum type, void* pixels);
 
-  bool draw(EGLNativeWindowType native_window,
+  bool draw(EGLSurface surface,
             const anbox::graphics::Rect& window_frame,
             const RenderableList& renderables) override;
 
@@ -240,6 +240,8 @@ class Renderer : public anbox::graphics::Renderer {
   HandleType createClientImage(HandleType context, EGLenum target,
                                GLuint buffer);
   EGLBoolean destroyClientImage(HandleType image);
+
+  void runLocked(const std::function<void()> &func);
 
   // Used internally.
   bool bind_locked();
@@ -291,7 +293,7 @@ class Renderer : public anbox::graphics::Renderer {
 
   std::shared_ptr<anbox::platform::BasePlatform> m_platform;
 
-  std::map<EGLNativeWindowType, RendererWindow*> m_nativeWindows;
+  std::map<EGLSurface, RendererWindow*> m_surfaces;
 
   anbox::graphics::ProgramFamily m_family;
   struct Program {

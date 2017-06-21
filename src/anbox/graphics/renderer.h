@@ -28,7 +28,7 @@ class Renderer {
  public:
   virtual ~Renderer() {}
 
-  virtual bool draw(EGLNativeWindowType native_window,
+  virtual bool draw(EGLSurface surface,
                     const anbox::graphics::Rect& window_frame,
                     const RenderableList& renderables) = 0;
 };
