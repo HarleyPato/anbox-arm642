@@ -86,7 +86,7 @@ class Renderer : public anbox::graphics::Renderer {
   // own sub-windows. If false, this means the caller will use
   // setPostCallback() instead to retrieve the content.
   // Returns true on success, false otherwise.
-  bool initialize(EGLNativeDisplayType nativeDisplay);
+  bool initialize();
 
   // Finalize the instance.
   void finalize();

@@ -93,8 +93,8 @@ void Renderer::finalize() {
   s_egl.eglDestroySurface(m_eglDisplay, m_pbufSurface);
 }
 
-bool Renderer::initialize(EGLNativeDisplayType nativeDisplay) {
-  m_eglDisplay = s_egl.eglGetDisplay(nativeDisplay);
+bool Renderer::initialize() {
+  m_eglDisplay = s_egl.eglGetDisplay(m_platform->native_display());
   if (m_eglDisplay == EGL_NO_DISPLAY) {
     ERROR("Failed to Initialize backend EGL display");
     return false;
