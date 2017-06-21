@@ -94,6 +94,7 @@ Window::Window(const std::shared_ptr<Renderer> &renderer,
           renderer->getEglDisplay(),
           renderer->getEglConfig(),
           native_handle(), nullptr);
+    return egl_surface_ != EGL_NO_SURFACE;
   });
 }
 

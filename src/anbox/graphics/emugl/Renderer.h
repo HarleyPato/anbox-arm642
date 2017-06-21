@@ -241,7 +241,7 @@ class Renderer : public anbox::graphics::Renderer {
                                GLuint buffer);
   EGLBoolean destroyClientImage(HandleType image);
 
-  void runLocked(const std::function<void()> &func);
+  bool runLocked(const std::function<bool()> &func);
 
   // Used internally.
   bool bind_locked();
