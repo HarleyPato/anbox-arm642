@@ -71,7 +71,7 @@ GLRendererServer::GLRendererServer(const Config &config, const std::shared_ptr<w
 
   std::shared_ptr<LayerComposer::Strategy> composer_strategy;
   if (config.single_window)
-    composer_strategy = std::make_shared<SingleWindowComposerStrategy>(wm);
+    composer_strategy = std::make_shared<SingleWindowComposerStrategy>(wm, !platform->supports_cursor());
   else
     composer_strategy = std::make_shared<MultiWindowComposerStrategy>(wm);
 

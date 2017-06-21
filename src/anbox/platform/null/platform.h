@@ -38,6 +38,7 @@ class NullPlatform : public BasePlatform {
   bool supports_multi_window() const override;
   EGLNativeDisplayType native_display() const override;
   EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;
+  bool supports_cursor() const override;
 };
 }  // namespace wm
 }  // namespace anbox

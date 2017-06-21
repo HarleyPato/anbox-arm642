@@ -72,6 +72,11 @@ bool NullPlatform::supports_multi_window() const {
   return false;
 }
 
+bool NullPlatform::supports_cursor() const {
+  ERROR("Not implemented");
+  return false;
+}
+
 EGLNativeDisplayType NullPlatform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }

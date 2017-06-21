@@ -26,7 +26,8 @@ const constexpr char *sprite_name{"Sprite"};
 
 namespace anbox {
 namespace graphics {
-SingleWindowComposerStrategy::SingleWindowComposerStrategy(const std::shared_ptr<wm::Manager> &wm) : wm_(wm) {}
+SingleWindowComposerStrategy::SingleWindowComposerStrategy(const std::shared_ptr<wm::Manager> &wm, bool display_cursor) :
+  wm_(wm), display_cursor_(display_cursor) {}
 
 std::map<std::shared_ptr<wm::Window>, RenderableList> SingleWindowComposerStrategy::process_layers(const RenderableList &renderables) {
   WindowRenderableList win_layers;
@@ -38,7 +39,7 @@ std::map<std::shared_ptr<wm::Window>, RenderableList> SingleWindowComposerStrate
   // cursor which we don't want to render.
   RenderableList final_renderables;
   for (const auto &r : renderables) {
-    if (r.name() == sprite_name)
+    if (!display_cursor_ && r.name() == sprite_name)
       continue;
     final_renderables.push_back(r);
   }

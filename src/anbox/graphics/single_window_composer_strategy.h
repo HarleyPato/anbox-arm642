@@ -26,13 +26,14 @@ namespace anbox {
 namespace graphics {
 class SingleWindowComposerStrategy : public LayerComposer::Strategy {
  public:
-  SingleWindowComposerStrategy(const std::shared_ptr<wm::Manager> &wm);
+  SingleWindowComposerStrategy(const std::shared_ptr<wm::Manager> &wm, bool display_cursor = false);
   ~SingleWindowComposerStrategy() = default;
 
   WindowRenderableList process_layers(const RenderableList &renderables) override;
 
 private:
   std::shared_ptr<wm::Manager> wm_;
+  bool display_cursor_;
 };
 }  // namespace graphics
 }  // namespace anbox

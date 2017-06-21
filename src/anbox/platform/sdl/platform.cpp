@@ -319,6 +319,10 @@ bool Platform::supports_multi_window() const {
   return true;
 }
 
+bool Platform::supports_cursor() const {
+  return true;
+}
+
 EGLNativeDisplayType Platform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }

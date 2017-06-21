@@ -69,6 +69,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
   std::shared_ptr<audio::Source> create_audio_source() override;
 
   bool supports_multi_window() const override;
+  bool supports_cursor() const override;
 
   EGLNativeDisplayType native_display() const override;
 
