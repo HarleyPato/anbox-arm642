@@ -134,8 +134,7 @@ class RendererConfigList {
   // |configsSize| is the number of entries in the |configs| array. The
   // function will never write more than |configsSize| entries into
   // |configsSize|.
-  EGLint chooseConfig(const EGLint* attribs, EGLint* configs,
-                      EGLint configsSize) const;
+  EGLint chooseConfig(const EGLint* attribs, EGLint* configs, EGLint configsSize) const;
 
   // Retrieve information that can be sent to the guest before packed
   // config list information. If |numConfigs| is NULL, then |*numConfigs|
@@ -153,6 +152,8 @@ class RendererConfigList {
  private:
   RendererConfigList();
   RendererConfigList(const RendererConfigList& other);
+
+  bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) const;
 
   int mCount;
   RendererConfig** mConfigs;

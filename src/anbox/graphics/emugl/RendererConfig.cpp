@@ -57,27 +57,6 @@ const GLuint kConfigAttributes[] = {
 };
 
 const size_t kConfigAttributesLen = sizeof(kConfigAttributes) / sizeof(kConfigAttributes[0]);
-
-bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
-  // Filter out configs which do not support pbuffers, since they
-  // are used to implement window surfaces.
-  EGLint surfaceType;
-  s_egl.eglGetConfigAttrib(display, config, EGL_SURFACE_TYPE, &surfaceType);
-  if (!(surfaceType & EGL_PBUFFER_BIT)) {
-    return false;
-  }
-
-  // Filter out configs that do not support RGB pixel values.
-  EGLint redSize = 0, greenSize = 0, blueSize = 0;
-  s_egl.eglGetConfigAttrib(display, config, EGL_RED_SIZE, &redSize);
-  s_egl.eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &greenSize);
-  s_egl.eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blueSize);
-
-  if (!redSize || !greenSize || !blueSize)
-    return false;
-
-  return true;
-}
 }  // namespace
 
 RendererConfig::~RendererConfig() { delete[] mAttribValues; }
@@ -139,6 +118,19 @@ RendererConfigList::~RendererConfigList() {
   for (int n = 0; n < mCount; ++n)
     delete mConfigs[n];
   delete[] mConfigs;
+}
+
+bool RendererConfigList::isCompatibleHostConfig(EGLConfig config, EGLDisplay display) const {
+  // Filter out configs that do not support RGB pixel values.
+  EGLint redSize = 0, greenSize = 0, blueSize = 0;
+  s_egl.eglGetConfigAttrib(display, config, EGL_RED_SIZE, &redSize);
+  s_egl.eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &greenSize);
+  s_egl.eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blueSize);
+
+  if (!redSize || !greenSize || !blueSize)
+    return false;
+
+  return true;
 }
 
 int RendererConfigList::chooseConfig(const EGLint* attribs, EGLint* configs,
