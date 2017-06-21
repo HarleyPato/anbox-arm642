@@ -22,25 +22,41 @@
 
 namespace {
 const GLuint kConfigAttributes[] = {
-    EGL_DEPTH_SIZE,       // must be first - see getDepthSize()
-    EGL_STENCIL_SIZE,     // must be second - see getStencilSize()
-    EGL_RENDERABLE_TYPE,  // must be third - see getRenderableType()
-    EGL_SURFACE_TYPE,     // must be fourth - see getSurfaceType()
-    EGL_CONFIG_ID,        // must be fifth  - see chooseConfig()
-    EGL_BUFFER_SIZE, EGL_ALPHA_SIZE, EGL_BLUE_SIZE, EGL_GREEN_SIZE,
-    EGL_RED_SIZE, EGL_CONFIG_CAVEAT, EGL_LEVEL, EGL_MAX_PBUFFER_HEIGHT,
-    EGL_MAX_PBUFFER_PIXELS, EGL_MAX_PBUFFER_WIDTH, EGL_NATIVE_RENDERABLE,
-    EGL_NATIVE_VISUAL_ID, EGL_NATIVE_VISUAL_TYPE, EGL_SAMPLES,
-    EGL_SAMPLE_BUFFERS, EGL_TRANSPARENT_TYPE, EGL_TRANSPARENT_BLUE_VALUE,
-    EGL_TRANSPARENT_GREEN_VALUE, EGL_TRANSPARENT_RED_VALUE,
-    EGL_BIND_TO_TEXTURE_RGB, EGL_BIND_TO_TEXTURE_RGBA, EGL_MIN_SWAP_INTERVAL,
-    EGL_MAX_SWAP_INTERVAL, EGL_LUMINANCE_SIZE, EGL_ALPHA_MASK_SIZE,
-    EGL_COLOR_BUFFER_TYPE,
-    // EGL_MATCH_NATIVE_PIXMAP,
-    EGL_CONFORMANT};
+  EGL_DEPTH_SIZE,     // must be first - see getDepthSize()
+  EGL_STENCIL_SIZE,   // must be second - see getStencilSize()
+  EGL_RENDERABLE_TYPE,// must be third - see getRenderableType()
+  EGL_SURFACE_TYPE,   // must be fourth - see getSurfaceType()
+  EGL_CONFIG_ID,      // must be fifth  - see chooseConfig()
+  EGL_BUFFER_SIZE,
+  EGL_ALPHA_SIZE,
+  EGL_BLUE_SIZE,
+  EGL_GREEN_SIZE,
+  EGL_RED_SIZE,
+  EGL_CONFIG_CAVEAT,
+  EGL_LEVEL,
+  EGL_MAX_PBUFFER_HEIGHT,
+  EGL_MAX_PBUFFER_PIXELS,
+  EGL_MAX_PBUFFER_WIDTH,
+  EGL_NATIVE_RENDERABLE,
+  EGL_NATIVE_VISUAL_ID,
+  EGL_NATIVE_VISUAL_TYPE,
+  EGL_SAMPLES,
+  EGL_SAMPLE_BUFFERS,
+  EGL_TRANSPARENT_TYPE,
+  EGL_TRANSPARENT_BLUE_VALUE,
+  EGL_TRANSPARENT_GREEN_VALUE,
+  EGL_TRANSPARENT_RED_VALUE,
+  EGL_BIND_TO_TEXTURE_RGB,
+  EGL_BIND_TO_TEXTURE_RGBA,
+  EGL_MIN_SWAP_INTERVAL,
+  EGL_MAX_SWAP_INTERVAL,
+  EGL_LUMINANCE_SIZE,
+  EGL_ALPHA_MASK_SIZE,
+  EGL_COLOR_BUFFER_TYPE,
+  EGL_CONFORMANT
+};
 
-const size_t kConfigAttributesLen =
-    sizeof(kConfigAttributes) / sizeof(kConfigAttributes[0]);
+const size_t kConfigAttributesLen = sizeof(kConfigAttributes) / sizeof(kConfigAttributes[0]);
 
 bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
   // Filter out configs which do not support pbuffers, since they
@@ -57,9 +73,8 @@ bool isCompatibleHostConfig(EGLConfig config, EGLDisplay display) {
   s_egl.eglGetConfigAttrib(display, config, EGL_GREEN_SIZE, &greenSize);
   s_egl.eglGetConfigAttrib(display, config, EGL_BLUE_SIZE, &blueSize);
 
-  if (!redSize || !greenSize || !blueSize) {
+  if (!redSize || !greenSize || !blueSize)
     return false;
-  }
 
   return true;
 }
@@ -72,14 +87,21 @@ RendererConfig::RendererConfig(EGLConfig hostConfig, EGLDisplay hostDisplay)
   mAttribValues = new GLint[kConfigAttributesLen];
   for (size_t i = 0; i < kConfigAttributesLen; ++i) {
     mAttribValues[i] = 0;
-    s_egl.eglGetConfigAttrib(hostDisplay, hostConfig, kConfigAttributes[i],
-                             &mAttribValues[i]);
+    if (!s_egl.eglGetConfigAttrib(hostDisplay,
+                                  hostConfig,
+                                  kConfigAttributes[i],
+                                  &mAttribValues[i]))
+      ERROR("Failed to get attribute for host EGL config: %d", s_egl.eglGetError());
 
     // This implementation supports guest window surfaces by wrapping
     // them around host Pbuffers, so always report it to the guest.
-    if (kConfigAttributes[i] == EGL_SURFACE_TYPE) {
-      mAttribValues[i] |= EGL_WINDOW_BIT;
-    }
+    if (kConfigAttributes[i] == EGL_SURFACE_TYPE)
+      mAttribValues[i] = (EGL_WINDOW_BIT | EGL_PBUFFER_BIT);
+
+    // Don't report ES3 renderable type if we don't support it.
+    if (kConfigAttributes[i] == EGL_RENDERABLE_TYPE &&
+        mAttribValues[i] & EGL_OPENGL_ES3_BIT)
+      mAttribValues[i] &= ~EGL_OPENGL_ES3_BIT;
   }
 }
 
@@ -96,14 +118,16 @@ RendererConfigList::RendererConfigList(EGLDisplay display)
     return;
   }
   EGLConfig* hostConfigs = new EGLConfig[numHostConfigs];
-  s_egl.eglGetConfigs(display, hostConfigs, numHostConfigs, &numHostConfigs);
+  if (!s_egl.eglGetConfigs(display, hostConfigs, numHostConfigs, &numHostConfigs)) {
+    ERROR("Failed to retrieve host EGL configurations: %d", s_egl.eglGetError());
+    return;
+  }
 
   mConfigs = new RendererConfig*[numHostConfigs];
   for (EGLint i = 0; i < numHostConfigs; ++i) {
     // Filter out configs that are not compatible with our implementation.
-    if (!isCompatibleHostConfig(hostConfigs[i], display)) {
+    if (!isCompatibleHostConfig(hostConfigs[i], display))
       continue;
-    }
     mConfigs[mCount] = new RendererConfig(hostConfigs[i], display);
     mCount++;
   }
@@ -112,9 +136,8 @@ RendererConfigList::RendererConfigList(EGLDisplay display)
 }
 
 RendererConfigList::~RendererConfigList() {
-  for (int n = 0; n < mCount; ++n) {
+  for (int n = 0; n < mCount; ++n)
     delete mConfigs[n];
-  }
   delete[] mConfigs;
 }
 
@@ -122,8 +145,8 @@ int RendererConfigList::chooseConfig(const EGLint* attribs, EGLint* configs,
                                      EGLint configsSize) const {
   EGLint numHostConfigs = 0;
   if (!s_egl.eglGetConfigs(mDisplay, NULL, 0, &numHostConfigs)) {
-    ERROR("Could not get number of host EGL configs");
-    return 0;
+      ERROR("Could not get number of host EGL configs");
+      return 0;
   }
 
   EGLConfig* matchedConfigs = new EGLConfig[numHostConfigs];
@@ -133,77 +156,68 @@ int RendererConfigList::chooseConfig(const EGLint* attribs, EGLint* configs,
   // what it used by the current implementation, exclusively. This forces
   // the rewrite of |attribs| into a new array.
   bool hasSurfaceType = false;
-  bool mustReplaceSurfaceType = false;
   int numAttribs = 0;
   while (attribs[numAttribs] != EGL_NONE) {
-    if (attribs[numAttribs] == EGL_SURFACE_TYPE) {
-      hasSurfaceType = true;
-      if (attribs[numAttribs + 1] != EGL_PBUFFER_BIT) {
-        mustReplaceSurfaceType = true;
+      if (attribs[numAttribs] == EGL_SURFACE_TYPE)
+          hasSurfaceType = true;
+
+      // Reject config if guest asked for ES3 and we don't have it.
+      if (attribs[numAttribs] == EGL_RENDERABLE_TYPE) {
+          if (attribs[numAttribs + 1] != EGL_DONT_CARE &&
+              attribs[numAttribs + 1] & EGL_OPENGL_ES3_BIT_KHR)
+            return 0;
       }
-    }
-    numAttribs += 2;
+      numAttribs += 2;
   }
 
-  EGLint* newAttribs = NULL;
+  std::vector<EGLint> newAttribs(numAttribs);
+  memcpy(&newAttribs[0], attribs, numAttribs * sizeof(EGLint));
 
-  if (mustReplaceSurfaceType) {
-    // There is at least on EGL_SURFACE_TYPE in |attribs|. Copy the
-    // array and replace all values with EGL_PBUFFER_BIT
-    newAttribs = new GLint[numAttribs + 1];
-    memcpy(newAttribs, attribs, numAttribs * sizeof(GLint));
-    newAttribs[numAttribs] = EGL_NONE;
-    for (int n = 0; n < numAttribs; n += 2) {
-      if (newAttribs[n] == EGL_SURFACE_TYPE) {
-        newAttribs[n + 1] = EGL_PBUFFER_BIT;
-      }
-    }
-  } else if (!hasSurfaceType) {
-    // There is no EGL_SURFACE_TYPE in |attribs|, then add one entry
-    // with the value EGL_PBUFFER_BIT.
-    newAttribs = new GLint[numAttribs + 3];
-    memcpy(newAttribs, attribs, numAttribs * sizeof(GLint));
-    newAttribs[numAttribs] = EGL_SURFACE_TYPE;
-    newAttribs[numAttribs + 1] = EGL_PBUFFER_BIT;
-    newAttribs[numAttribs + 2] = EGL_NONE;
+  if (!hasSurfaceType) {
+      newAttribs.push_back(EGL_SURFACE_TYPE);
+      newAttribs.push_back(EGL_WINDOW_BIT);
   }
 
-  if (!s_egl.eglChooseConfig(mDisplay, newAttribs ? newAttribs : attribs,
-                             matchedConfigs, numHostConfigs, &numHostConfigs)) {
-    numHostConfigs = 0;
-  }
+  newAttribs.push_back(EGL_NONE);
 
-  delete[] newAttribs;
+  if (s_egl.eglChooseConfig(mDisplay,
+                            &newAttribs[0],
+                            matchedConfigs,
+                            numHostConfigs,
+                            &numHostConfigs) == EGL_FALSE) {
+      delete [] matchedConfigs;
+      return 0;
+  }
 
   int result = 0;
   for (int n = 0; n < numHostConfigs; ++n) {
-    // Don't count or write more than |configsSize| items if |configs|
-    // is not NULL.
-    if (configs && configsSize > 0 && result >= configsSize) {
-      break;
-    }
-    // Skip incompatible host configs.
-    if (!isCompatibleHostConfig(matchedConfigs[n], mDisplay)) {
-      continue;
-    }
-    // Find the FbConfig with the same EGL_CONFIG_ID
-    EGLint hostConfigId;
-    s_egl.eglGetConfigAttrib(mDisplay, matchedConfigs[n], EGL_CONFIG_ID,
-                             &hostConfigId);
-    for (int k = 0; k < mCount; ++k) {
-      int guestConfigId = mConfigs[k]->getConfigId();
-      if (guestConfigId == hostConfigId) {
-        // There is a match. Write it to |configs| if it is not NULL.
-        if (configs && result < configsSize) {
-          configs[result] = static_cast<uint32_t>(k);
-        }
-        result++;
-        break;
+      // Don't count or write more than |configsSize| items if |configs|
+      // is not NULL.
+      if (configs && configsSize > 0 && result >= configsSize)
+          break;
+
+      // Skip incompatible host configs.
+      if (!isCompatibleHostConfig(matchedConfigs[n], mDisplay))
+          continue;
+
+      // Find the FbConfig with the same EGL_CONFIG_ID
+      EGLint hostConfigId;
+      s_egl.eglGetConfigAttrib(
+              mDisplay, matchedConfigs[n], EGL_CONFIG_ID, &hostConfigId);
+      for (int k = 0; k < mCount; ++k) {
+          int guestConfigId = mConfigs[k]->getConfigId();
+          if (guestConfigId == hostConfigId) {
+              // There is a match. Write it to |configs| if it is not NULL.
+              if (configs && result < configsSize) {
+                  configs[result] = (uint32_t)k;
+              }
+              result ++;
+              break;
+          }
       }
-    }
   }
 
-  delete[] matchedConfigs;
+  delete [] matchedConfigs;
 
   return result;
 }
