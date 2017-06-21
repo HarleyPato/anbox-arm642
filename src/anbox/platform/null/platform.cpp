@@ -83,6 +83,10 @@ EGLNativeDisplayType NullPlatform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }
 
+EGLDisplay NullPlatform::create_display() {
+  return EGL_NO_DISPLAY;
+}
+
 bool NullPlatform::choose_config(EGLDisplay display, EGLConfig *config) {
   (void) display;
   (void) config;

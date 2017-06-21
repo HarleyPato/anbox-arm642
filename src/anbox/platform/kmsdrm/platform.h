@@ -67,6 +67,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
 
   EGLNativeDisplayType native_display() const override;
 
+  EGLDisplay create_display() override;
   bool choose_config(EGLDisplay display, EGLConfig *config) override;
 
   EGLSurface create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) override;

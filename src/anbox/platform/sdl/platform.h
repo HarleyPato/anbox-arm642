@@ -71,6 +71,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
   bool supports_multi_window() const override;
   bool supports_cursor() const override;
 
+  EGLDisplay create_display() override;
   bool choose_config(EGLDisplay display, EGLConfig *config) override;
 
   EGLNativeDisplayType native_display() const override;

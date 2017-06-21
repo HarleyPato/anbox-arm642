@@ -94,7 +94,7 @@ void Renderer::finalize() {
 }
 
 bool Renderer::initialize() {
-  m_eglDisplay = s_egl.eglGetDisplay(m_platform->native_display());
+  m_eglDisplay = m_platform->create_display();
   if (m_eglDisplay == EGL_NO_DISPLAY) {
     ERROR("Failed to Initialize backend EGL display");
     return false;
@@ -858,8 +858,7 @@ void Renderer::tessellate(std::vector<anbox::graphics::Primitive> &primitives,
   primitives[0] = rectangle;
 }
 
-void Renderer::draw(RendererWindow *window, const Renderable &renderable,
-                    const Program &prog) {
+void Renderer::draw(RendererWindow *window, const Renderable &renderable, const Program &prog) {
   const auto &color_buffer = m_colorbuffers.find(renderable.buffer());
   if (color_buffer == m_colorbuffers.end()) return;
 

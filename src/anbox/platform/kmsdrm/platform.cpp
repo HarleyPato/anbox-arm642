@@ -490,6 +490,10 @@ EGLNativeDisplayType Platform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(gbm_);
 }
 
+EGLDisplay Platform::create_display() {
+  return s_egl.eglGetDisplay(native_display());
+}
+
 bool Platform::choose_config(EGLDisplay display, EGLConfig *config) {
   const EGLint attribs[] = {
     EGL_RED_SIZE, 1,
@@ -507,7 +511,8 @@ bool Platform::choose_config(EGLDisplay display, EGLConfig *config) {
   return true;
 }
 
-EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
+EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config,
+                                              unsigned int width, unsigned int height) {
   auto gs = gbm_surface_create(gbm_, width, height,
                                GBM_BO_FORMAT_XRGB8888,
                                GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);

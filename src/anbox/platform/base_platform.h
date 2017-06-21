@@ -63,6 +63,7 @@ class BasePlatform {
   virtual bool supports_multi_window() const = 0;
   virtual bool supports_cursor() const = 0;
 
+  virtual EGLDisplay create_display() = 0;
   virtual bool choose_config(EGLDisplay display, EGLConfig *config) = 0;
 
   virtual EGLNativeDisplayType native_display() const = 0;

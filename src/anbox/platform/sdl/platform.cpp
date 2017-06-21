@@ -324,7 +324,11 @@ bool Platform::supports_cursor() const {
 }
 
 EGLNativeDisplayType Platform::native_display() const {
-  return reinterpret_cast<EGLNativeDisplayType>(0);
+  return EGL_DEFAULT_DISPLAY;
+}
+
+EGLDisplay Platform::create_display() {
+  return s_egl.eglGetDisplay(native_display());
 }
 
 bool Platform::choose_config(EGLDisplay display, EGLConfig *config) {
