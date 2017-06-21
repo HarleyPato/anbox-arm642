@@ -33,37 +33,6 @@
 #include <glm/gtx/transform.hpp>
 
 namespace {
-
-// Helper class to call the bind_locked() / unbind_locked() properly.
-class ScopedBind {
- public:
-  // Constructor will call bind_locked() on |fb|.
-  // Use isValid() to check for errors.
-  ScopedBind(Renderer *fb) : mFb(fb) {
-    if (!fb->bind_locked()) {
-      mFb = NULL;
-    }
-  }
-
-  // Returns true if contruction bound the framebuffer context properly.
-  bool isValid() const { return mFb != NULL; }
-
-  // Unbound the framebuffer explictly. This is also called by the
-  // destructor.
-  void release() {
-    if (mFb) {
-      mFb->unbind_locked();
-      mFb = NULL;
-    }
-  }
-
-  // Destructor will call release().
-  ~ScopedBind() { release(); }
-
- private:
-  Renderer *mFb;
-};
-
 // Implementation of a ColorBuffer::Helper instance that redirects calls
 // to a FrameBuffer instance.
 class ColorBufferHelper : public ColorBuffer::Helper {
@@ -156,7 +125,7 @@ bool Renderer::initialize() {
   }
 
   // Make the context current
-  ScopedBind bind(this);
+  RendererScopeLock bind(this);
   if (!bind.isValid()) {
     ERROR("Failed to make current");
     return false;
@@ -702,8 +671,7 @@ HandleType Renderer::createClientImage(HandleType context, EGLenum target,
 }
 
 EGLBoolean Renderer::destroyClientImage(HandleType image) {
-  return s_egl.eglDestroyImageKHR(m_eglDisplay,
-                                  reinterpret_cast<EGLImageKHR>(image));
+  return s_egl.eglDestroyImageKHR(m_eglDisplay, reinterpret_cast<EGLImageKHR>(image));
 }
 
 //
@@ -944,8 +912,9 @@ bool Renderer::draw(EGLSurface surface,
   return false;
 }
 
-void Renderer::runLocked(const std::function<void ()> &func) {
+bool Renderer::runLocked(const std::function<bool()> &func) {
   m_lock.lock();
-  func();
+  auto result = func();
   m_lock.unlock();
+  return result;
 }

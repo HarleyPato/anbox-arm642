@@ -319,4 +319,35 @@ class Renderer : public anbox::graphics::Renderer {
   static const GLchar* const defaultFShader;
   static const GLchar* const alphaFShader;
 };
+
+// Helper class to call the bind_locked() / unbind_locked() properly.
+class RendererScopeLock {
+ public:
+  // Constructor will call bind_locked() on |fb|.
+  // Use isValid() to check for errors.
+  RendererScopeLock(Renderer *fb) : mFb(fb) {
+    if (!fb->bind_locked()) {
+      mFb = NULL;
+    }
+  }
+
+  // Returns true if contruction bound the framebuffer context properly.
+  bool isValid() const { return mFb != NULL; }
+
+  // Unbound the framebuffer explictly. This is also called by the
+  // destructor.
+  void release() {
+    if (mFb) {
+      mFb->unbind_locked();
+      mFb = NULL;
+    }
+  }
+
+  // Destructor will call release().
+  ~RendererScopeLock() { release(); }
+
+ private:
+  Renderer *mFb;
+};
+
 #endif
