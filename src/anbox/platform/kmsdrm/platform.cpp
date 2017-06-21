@@ -358,7 +358,6 @@ void Platform::read_input_events() {
       case LIBINPUT_EVENT_KEYBOARD_KEY:
         break;
       default:
-        DEBUG("Unhandled input event type %d", type);
         break;
       }
     }
