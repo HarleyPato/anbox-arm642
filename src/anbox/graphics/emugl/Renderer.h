@@ -230,6 +230,9 @@ class Renderer : public anbox::graphics::Renderer {
   // Return the host EGLDisplay used by this instance.
   EGLDisplay getEglDisplay() const { return m_eglDisplay; }
 
+  // Return the host EGLConfig used by this instance.
+  EGLConfig getEglConfig() const { return m_eglConfig; }
+
   // Return a TextureDraw instance that can be used with this surfaces
   // and windows created by this instance.
   TextureDraw* getTextureDraw() const { return m_textureDraw; }
