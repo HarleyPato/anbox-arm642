@@ -83,6 +83,13 @@ EGLNativeDisplayType NullPlatform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }
 
+bool NullPlatform::choose_config(EGLDisplay display, EGLConfig *config) {
+  (void) display;
+  (void) config;
+  ERROR("Not implemented");
+  return false;
+}
+
 EGLSurface NullPlatform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
   (void) display;
   (void) config;

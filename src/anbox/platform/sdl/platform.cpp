@@ -327,6 +327,23 @@ EGLNativeDisplayType Platform::native_display() const {
   return reinterpret_cast<EGLNativeDisplayType>(0);
 }
 
+bool Platform::choose_config(EGLDisplay display, EGLConfig *config) {
+  const EGLint attribs[] = {
+    EGL_RED_SIZE, 1,
+    EGL_GREEN_SIZE, 1,
+    EGL_BLUE_SIZE, 1,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT | EGL_PBUFFER_BIT,
+    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+    EGL_NONE
+  };
+
+  int n;
+  if (!s_egl.eglChooseConfig(display, attribs, config, 1, &n))
+    return false;
+
+  return true;
+}
+
 EGLSurface Platform::create_offscreen_surface(EGLDisplay display, EGLConfig config, unsigned int width, unsigned int height) {
   const EGLint attribs[5] = {
       EGL_WIDTH, static_cast<EGLint>(width),

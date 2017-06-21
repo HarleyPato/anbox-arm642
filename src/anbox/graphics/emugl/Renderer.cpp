@@ -113,18 +113,7 @@ bool Renderer::initialize() {
 
   s_egl.eglBindAPI(EGL_OPENGL_ES_API);
 
-  // Create EGL context for framebuffer post rendering.
-  GLint surfaceType = EGL_WINDOW_BIT | EGL_PBUFFER_BIT;
-  const GLint configAttribs[] = {EGL_RED_SIZE, 1,
-                                 EGL_GREEN_SIZE, 1,
-                                 EGL_BLUE_SIZE, 1,
-                                 EGL_SURFACE_TYPE, surfaceType,
-                                 EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-                                 EGL_NONE};
-
-  int n;
-  if (!s_egl.eglChooseConfig(m_eglDisplay, configAttribs, &m_eglConfig,
-                             1, &n)) {
+  if (!m_platform->choose_config(m_eglDisplay, &m_eglConfig)) {
     ERROR("Failed to select EGL configuration");
     return false;
   }
