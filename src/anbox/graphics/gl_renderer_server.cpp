@@ -94,7 +94,7 @@ GLRendererServer::GLRendererServer(const Config &config, const std::shared_ptr<w
   if (!emugl::initialize(gl_libs, &log_funcs, nullptr))
     BOOST_THROW_EXCEPTION(std::runtime_error("Failed to initialize OpenGL renderer"));
 
-  renderer_->initialize(0);
+  renderer_->initialize(platform->native_display());
 
   registerRenderer(renderer_);
   registerLayerComposer(composer_);
