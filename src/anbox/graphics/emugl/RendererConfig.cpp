@@ -209,7 +209,7 @@ int RendererConfigList::chooseConfig(const EGLint* attribs, EGLint* configs,
           if (guestConfigId == hostConfigId) {
               // There is a match. Write it to |configs| if it is not NULL.
               if (configs && result < configsSize) {
-                  configs[result] = (uint32_t)k;
+                  configs[result] = static_cast<uint32_t>(k);
               }
               result ++;
               break;
