@@ -386,7 +386,14 @@ std::shared_ptr<wm::Window> Platform::create_window(
     return nullptr;
   }
 
-  anbox::graphics::Rect window_frame{0, 0, original_crtc_->mode.hdisplay, original_crtc_->mode.vdisplay};
+  auto width = 1024;
+  auto height = 768;
+  if (original_crtc_) {
+    width = original_crtc_->mode.hdisplay;
+    height = original_crtc_->mode.vdisplay;
+  }
+
+  anbox::graphics::Rect window_frame{0, 0, width, height};
 
   graphics::emugl::DisplayInfo::get()->set_resolution(window_frame.width(), window_frame.height());
 
