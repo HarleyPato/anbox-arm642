@@ -65,8 +65,10 @@ namespace anbox {
 namespace platform {
 namespace kmsdrm {
 Platform::Platform(const std::shared_ptr<Runtime> &runtime,
+                   const graphics::Rect &screen_resolution,
                    const std::shared_ptr<input::Manager> &input_manager) :
   runtime_(runtime),
+  screen_resolution_(screen_resolution),
   input_manager_(input_manager) {
   setup();
 }
@@ -245,8 +247,23 @@ bool Platform::setup_kms() {
 
   connector_ = connector;
   encoder_ = encoder;
-  mode_ = connector->modes[0];
   crtc_ = crtc;
+
+  int n = 0;
+  for (; n < connector->count_modes; n++) {
+    const auto &mode = connector->modes[n];
+    const auto screen_resolution = graphics::Rect(0, 0, mode.hdisplay, mode.vdisplay);
+    if (screen_resolution == screen_resolution_) {
+      mode_ = mode;
+      break;
+    }
+  }
+
+  if (n == connector->count_modes) {
+    ERROR("Failed to find a suitable mode for our target screen resolution %dx%d",
+          screen_resolution_.width(), screen_resolution_.height());
+    return false;
+  }
 
   original_crtc_ = drmModeGetCrtc(fd_, encoder_->crtc_id);
 

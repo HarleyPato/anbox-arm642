@@ -48,6 +48,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
                  public BasePlatform {
  public:
   Platform(const std::shared_ptr<Runtime> &runtime,
+           const graphics::Rect &screen_resolution,
            const std::shared_ptr<input::Manager> &input_manager);
   ~Platform();
 
@@ -100,6 +101,7 @@ class Platform : public std::enable_shared_from_this<Platform>,
                            void *user_data);
 
   std::shared_ptr<Runtime> runtime_;
+  graphics::Rect screen_resolution_;
   std::shared_ptr<input::Manager> input_manager_;
   std::shared_ptr<input::Device> pointer_;
   std::shared_ptr<input::Device> keyboard_;

@@ -34,7 +34,7 @@ std::shared_ptr<BasePlatform> create(const std::string &name,
   if (name == "sdl")
     return std::make_shared<sdl::Platform>(input_manager, display_frame, single_window);
   else if (name == "kmsdrm")
-    return std::make_shared<kmsdrm::Platform>(rt, input_manager);
+    return std::make_shared<kmsdrm::Platform>(rt, display_frame, input_manager);
 
   WARNING("Unsupported platfrom '%s'", name);
 
