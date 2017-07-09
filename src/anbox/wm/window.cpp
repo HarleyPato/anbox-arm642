@@ -50,10 +50,7 @@ bool Window::attach() {
   if (!renderer_)
     return false;
 
-  renderer_->attach_window(egl_surface());
-
-  if (egl_surface_ != EGL_NO_SURFACE)
-    attached_ = true;
+  attached_ = renderer_->attach_window(egl_surface());
   return attached_;
 }
 
