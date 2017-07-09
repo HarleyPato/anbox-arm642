@@ -35,6 +35,10 @@ start() {
 		AA_EXEC=""
 	fi
 
+	# Ensure permissions for binder/ashmem are correct
+	chmod 666 /dev/binder
+	chmod 666 /dev/ashmem
+
 	exec $AA_EXEC $SNAP/bin/anbox-wrapper.sh container-manager \
 		--data-path=$DATA_PATH \
 		--android-image=$ANDROID_IMG \
