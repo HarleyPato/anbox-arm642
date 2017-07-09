@@ -136,6 +136,9 @@ parts:
       # investigation and fixes.
       - -DCMAKE_BUILD_TYPE=debug
       - -DANBOX_VERSION=$SNAPCRAFT_PROJECT_VERSION
+      - -DENABLE_MIR_SUPPORT=false
+      - -DENABLE_EMUGL_TRANSLATOR=false
+      - -DENABLE_KMSDRM_SUPPORT=true
     build-packages:
       - build-essential
       - cmake
