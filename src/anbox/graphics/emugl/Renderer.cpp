@@ -256,9 +256,6 @@ struct RendererWindow {
 };
 
 bool Renderer::attach_window(EGLSurface surface) {
-  if (surface == EGL_NO_SURFACE)
-    return false;
-
   m_lock.lock();
 
   auto window = new RendererWindow;

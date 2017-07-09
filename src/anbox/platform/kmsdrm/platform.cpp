@@ -403,32 +403,27 @@ std::shared_ptr<wm::Window> Platform::create_window(
   (void) frame;
   (void) title;
 
+  if (window_)
+    return nullptr;
+
   if (!renderer_) {
     ERROR("Cannot create window without a renderer assigned");
     return nullptr;
   }
 
-  auto width = 1024;
-  auto height = 768;
-  if (original_crtc_) {
-    width = original_crtc_->mode.hdisplay;
-    height = original_crtc_->mode.vdisplay;
-  }
-
-  anbox::graphics::Rect window_frame{0, 0, width, height};
+  anbox::graphics::Rect window_frame{0, 0, screen_resolution_.width(), screen_resolution_.height()};
 
   graphics::emugl::DisplayInfo::get()->set_resolution(window_frame.width(), window_frame.height());
 
   DEBUG("width %d height %d", window_frame.width(), window_frame.height());
 
-  if (!window_) {
-    auto gs = gbm_surface_create(gbm_,
-             window_frame.width(), window_frame.height(),
-             GBM_BO_FORMAT_XRGB8888,
-             GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
+  auto gs = gbm_surface_create(gbm_,
+           window_frame.width(),
+           window_frame.height(),
+           GBM_BO_FORMAT_XRGB8888,
+           GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
 
-    window_ = Window::create(renderer_, gs, window_frame);
-  }
+  window_ = Window::create(renderer_, gs, window_frame);
 
   return window_;
 }
@@ -567,8 +562,10 @@ void Platform::destroy_offscreen_surface(EGLDisplay display, EGLSurface surface)
 }
 
 void Platform::swap_buffers(EGLDisplay display, EGLSurface surface) {
-  if (window_->egl_surface() != surface)
+  if (!window_ || surface != window_->egl_surface()) {
+    ERROR("Swap buffers for an unknown surface is not possible");
     return;
+  }
 
   auto gs = reinterpret_cast<gbm_surface*>(window_->native_handle());
   if (!gs) {
@@ -576,8 +573,11 @@ void Platform::swap_buffers(EGLDisplay display, EGLSurface surface) {
     return;
   }
 
+  if (!gbm_surface_has_free_buffers(gs))
+    return;
+
   if (!s_egl.eglSwapBuffers(display, surface)) {
-    WARNING("Cannot swap buffers");
+    WARNING("Cannot swap buffers: %d", s_egl.eglGetError());
     return;
   }
 

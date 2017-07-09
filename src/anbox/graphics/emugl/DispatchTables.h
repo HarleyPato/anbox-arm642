@@ -15,6 +15,8 @@
 */
 #pragma once
 
+#include "external/android-emugl/host/include/OpenGLESDispatch/EGLDispatch.h"
+
 #include "OpenGLESDispatch/GLESv1Dispatch.h"
 #include "OpenGLESDispatch/GLESv2Dispatch.h"
 
