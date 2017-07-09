@@ -156,6 +156,7 @@ parts:
       - libdbus-1-dev
       - libdbus-cpp-dev
       - libegl1-mesa-dev
+      - libgbm-dev
       - libgles2-mesa-dev
       - libglib2.0-dev
       - libglm-dev
@@ -166,6 +167,8 @@ parts:
       - libsdl2-image-dev
       - pkg-config
       - protobuf-compiler
+      - libinput-dev
+      - libudev-dev
     stage-packages:
       - libegl1-mesa
       - libgles2-mesa
