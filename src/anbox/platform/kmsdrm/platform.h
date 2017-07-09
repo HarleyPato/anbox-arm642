@@ -56,11 +56,11 @@ class Platform : public std::enable_shared_from_this<Platform>,
       const anbox::graphics::Rect &frame,
       const std::string &title) override;
 
-  void set_clipboard_data(const ClipboardData &data) { }
-  ClipboardData get_clipboard_data() { }
+  void set_clipboard_data(const ClipboardData &data) { (void) data; }
+  ClipboardData get_clipboard_data() { return ClipboardData{}; }
 
   void set_renderer(const std::shared_ptr<Renderer> &renderer) override;
-  void set_window_manager(const std::shared_ptr<wm::Manager> &window_manager) override {}
+  void set_window_manager(const std::shared_ptr<wm::Manager> &window_manager) override { (void) window_manager; }
 
   std::shared_ptr<audio::Sink> create_audio_sink() override { return nullptr; }
   std::shared_ptr<audio::Source> create_audio_source() override { return nullptr; }

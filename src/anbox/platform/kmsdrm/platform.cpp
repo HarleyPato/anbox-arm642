@@ -259,6 +259,8 @@ void Platform::read_input_events() {
   libin_descriptor_->async_read_some(ba::null_buffers(),
                                      [this](const boost::system::error_code& err,
                                             std::size_t bytes_read) {
+    (void) bytes_read;
+
     if (err) {
       WARNING("Failed to read from libinput file descriptor: %s", err.message());
       return;
@@ -280,7 +282,7 @@ void Platform::read_input_events() {
         auto e = libinput_event_get_pointer_event(ev);
         const uint32_t btn = libinput_event_pointer_get_button(e);
         const bool pressed = libinput_event_pointer_get_button_state(e) == LIBINPUT_BUTTON_STATE_PRESSED;
-        mouse_events.push_back({EV_KEY, btn, pressed ? 1 : 0});
+        mouse_events.push_back({EV_KEY, static_cast<uint16_t>(btn), pressed ? 1 : 0});
         mouse_events.push_back({EV_SYN, SYN_REPORT, 0});
         break;
       }
@@ -300,14 +302,14 @@ void Platform::read_input_events() {
         // NOTE: Sending relative move events doesn't really work and we have
         // changes in libinputflinger to take ABS_X/ABS_Y instead for absolute
         // position events.
-        mouse_events.push_back({EV_ABS, ABS_X, x});
-        mouse_events.push_back({EV_ABS, ABS_Y, y});
+        mouse_events.push_back({EV_ABS, ABS_X, static_cast<int32_t>(x)});
+        mouse_events.push_back({EV_ABS, ABS_Y, static_cast<int32_t>(y)});
 
         // We're sending relative position updates here too but they will be only
         // used by the Android side EventHub/InputReader to determine if the cursor
         // was moved. They are not used to find out the exact position.
-        mouse_events.push_back({EV_REL, REL_X, dx});
-        mouse_events.push_back({EV_REL, REL_Y, dy});
+        mouse_events.push_back({EV_REL, REL_X, static_cast<int32_t>(dx)});
+        mouse_events.push_back({EV_REL, REL_Y, static_cast<int32_t>(dy)});
         mouse_events.push_back({EV_SYN, SYN_REPORT, 0});
         break;
       }
@@ -341,14 +343,14 @@ void Platform::read_input_events() {
         // NOTE: Sending relative move events doesn't really work and we have
         // changes in libinputflinger to take ABS_X/ABS_Y instead for absolute
         // position events.
-        mouse_events.push_back({EV_ABS, ABS_X, x});
-        mouse_events.push_back({EV_ABS, ABS_Y, y});
+        mouse_events.push_back({EV_ABS, ABS_X, static_cast<int32_t>(x)});
+        mouse_events.push_back({EV_ABS, ABS_Y, static_cast<int32_t>(y)});
 
         // We're sending relative position updates here too but they will be only
         // used by the Android side EventHub/InputReader to determine if the cursor
         // was moved. They are not used to find out the exact position.
-        mouse_events.push_back({EV_REL, REL_X, dx});
-        mouse_events.push_back({EV_REL, REL_Y, dy});
+        mouse_events.push_back({EV_REL, REL_X, static_cast<int32_t>(dx)});
+        mouse_events.push_back({EV_REL, REL_Y, static_cast<int32_t>(dy)});
         mouse_events.push_back({EV_SYN, SYN_REPORT, 0});
 
         break;
@@ -380,6 +382,10 @@ std::shared_ptr<wm::Window> Platform::create_window(
     const anbox::wm::Task::Id &task,
     const anbox::graphics::Rect &frame,
     const std::string &title) {
+  (void) task;
+  (void) frame;
+  (void) title;
+
   if (!renderer_) {
     ERROR("Cannot create window without a renderer assigned");
     return nullptr;

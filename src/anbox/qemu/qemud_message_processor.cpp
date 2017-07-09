@@ -71,7 +71,7 @@ void QemudMessageProcessor::process_commands() {
 
 void QemudMessageProcessor::send_header(const size_t &size) {
   char header[header_size + 1];
-  std::snprintf(header, header_size + 1, "%04lx", size);
+  std::snprintf(header, header_size + 1, "%04zux", size);
   messenger_->send(header, header_size);
 }
 
